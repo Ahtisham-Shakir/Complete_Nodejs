@@ -101,21 +101,35 @@
 // };
 
 // ===================== Using Sequelize ===================
-const Sequelize = require("sequelize");
-const sequelize = require("../utils/database");
+// const Sequelize = require("sequelize");
+// const sequelize = require("../utils/database");
 
-// creating product model
-const Product = sequelize.define("products", {
-  id: {
-    type: Sequelize.INTEGER,
-    autoIncrement: true,
-    allowNull: false,
-    primaryKey: true,
-  },
-  title: Sequelize.STRING,
-  price: { type: Sequelize.DOUBLE, allowNull: false },
-  imageUrl: { type: Sequelize.STRING, allowNull: false },
-  description: { type: Sequelize.STRING, allowNull: false },
-});
+// // creating product model
+// const Product = sequelize.define("products", {
+//   id: {
+//     type: Sequelize.INTEGER,
+//     autoIncrement: true,
+//     allowNull: false,
+//     primaryKey: true,
+//   },
+//   title: Sequelize.STRING,
+//   price: { type: Sequelize.DOUBLE, allowNull: false },
+//   imageUrl: { type: Sequelize.STRING, allowNull: false },
+//   description: { type: Sequelize.STRING, allowNull: false },
+// });
 
-module.exports = Product;
+// module.exports = Product;
+
+// ==================== using MongoDb ==================
+const getdb = require("../utils/database").getdb;
+
+class Product {
+  constructor(title, price, description, imageUrl) {
+    this.title = title;
+    this.price = price;
+    this.description = description;
+    this.imageUrl = imageUrl;
+  }
+
+  save() {}
+}
