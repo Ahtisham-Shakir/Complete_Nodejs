@@ -122,6 +122,7 @@
 
 // ==================== using MongoDb ==================
 const getdb = require("../utils/database").getdb;
+const mongodb = require("mongodb");
 
 class Product {
   constructor(title, price, description, imageUrl) {
@@ -131,5 +132,42 @@ class Product {
     this.imageUrl = imageUrl;
   }
 
-  save() {}
+  save() {
+    const db = getdb();
+    return db
+      .collection("products")
+      .insertOne(this)
+      .then((result) => {
+        console.log(result);
+      })
+      .catch((err) => {});
+  }
+
+  static fetchAll() {
+    const db = getdb();
+    return db
+      .collection("products")
+      .find()
+      .toArray()
+      .then((products) => {
+        return products;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  static findById(productId) {
+    const db = getdb();
+    return db
+      .collection("products")
+      .find({ _id: new mongodb.ObjectId(productId) })
+      .next()
+      .then((product) => {
+        return product;
+      })
+      .catch((err) => console.log(err));
+  }
 }
+
+module.exports = Product;

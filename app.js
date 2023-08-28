@@ -3,9 +3,9 @@ const express = require("express");
 const bodyParser = require("body-parser");
 // const sequelize = require("./utils/database");
 const mongoConnect = require("./utils/database").mongoConnect;
-// const adminRoutes = require("./routes/admin");
-// const shopRoutes = require("./routes/shop");
-// const errorController = require("./controllers/error");
+const adminRoutes = require("./routes/admin");
+const shopRoutes = require("./routes/shop");
+const errorController = require("./controllers/error");
 
 const app = express();
 
@@ -15,11 +15,11 @@ app.set("views", "views");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// app.use("/admin", adminRoutes);
-// app.use(shopRoutes);
+app.use("/admin", adminRoutes);
+app.use(shopRoutes);
 
 // 404 page
-// app.use(errorController.get404);
+app.use(errorController.get404);
 
 // connecting to database
 // sequelize
