@@ -61,17 +61,19 @@ exports.postCart = (req, res, next) => {
     })
     .then((result) => {
       console.log(result);
+      res.redirect("/cart");
     });
-  // res.redirect("/cart");
 };
 
-// exports.postDeleteCartItem = (req, res, next) => {
-//   const productId = req.body.productId;
-//   Product.findById(productId, (product) => {
-//     Cart.deleteProduct(productId, product.price);
-//   });
-//   res.redirect("/cart");
-// };
+exports.postDeleteCartItem = (req, res, next) => {
+  const productId = req.body.productId;
+  req.user
+    .deleteItemFromCart(productId)
+    .then(() => {
+      res.redirect("/cart");
+    })
+    .catch((err) => console.log(err));
+};
 
 // exports.getOrders = (req, res, next) => {
 //   res.render("shop/orders", { path: "/orders", pageTitle: "Your Orders" });
