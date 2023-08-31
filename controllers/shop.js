@@ -75,10 +75,18 @@ exports.postDeleteCartItem = (req, res, next) => {
     .catch((err) => console.log(err));
 };
 
-// exports.getOrders = (req, res, next) => {
-//   res.render("shop/orders", { path: "/orders", pageTitle: "Your Orders" });
-// };
+exports.getOrders = (req, res, next) => {
+  req.user.getOrders().then((orders) => {
+    res.render("shop/orders", {
+      path: "/orders",
+      pageTitle: "Your Orders",
+      orders: orders,
+    });
+  });
+};
 
-// exports.getCheckout = (req, res, next) => {
-//   res.render("shop/checkout", { path: "/checkout", pageTitle: "Checkout" });
-// };
+exports.postOrder = (req, res, next) => {
+  req.user.addOrder().then(() => {
+    res.redirect("/orders");
+  });
+};
