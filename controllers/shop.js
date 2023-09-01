@@ -78,15 +78,15 @@ exports.postDeleteCartItem = (req, res, next) => {
     .catch((err) => console.log(err));
 };
 
-// exports.getOrders = (req, res, next) => {
-//   req.user.getOrders().then((orders) => {
-//     res.render("shop/orders", {
-//       path: "/orders",
-//       pageTitle: "Your Orders",
-//       orders: orders,
-//     });
-//   });
-// };
+exports.getOrders = (req, res, next) => {
+  Order.find({ "user.userId": req.user._id }).then((orders) => {
+    res.render("shop/orders", {
+      path: "/orders",
+      pageTitle: "Your Orders",
+      orders: orders,
+    });
+  });
+};
 
 exports.postOrder = (req, res, next) => {
   req.user
@@ -106,6 +106,9 @@ exports.postOrder = (req, res, next) => {
         },
       });
       return order.save();
+    })
+    .then(() => {
+      return req.user.clearCart();
     })
     .then(() => {
       res.redirect("/orders");
