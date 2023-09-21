@@ -1,3 +1,5 @@
+const crypto = require("crypto");
+
 const bcrypt = require("bcryptjs");
 const User = require("../models/user");
 
@@ -7,7 +9,6 @@ exports.getLogin = (req, res, next) => {
   res.render("auth/login", {
     path: "/login",
     pageTitle: "Login",
-    isAuthenticated: req.session.isLoggedin,
     errorMessage: req.flash("error")[0],
   });
 };
@@ -57,7 +58,6 @@ exports.getSignup = (req, res, next) => {
   res.render("auth/signup.ejs", {
     path: "/signup",
     pageTitle: "Signups",
-    isAuthenticated: req.session.isLoggedin,
     errorMessage: req.flash("error")[0],
   });
 };
@@ -90,4 +90,39 @@ exports.postSignup = (req, res, next) => {
     .catch((err) => {
       console.log(err);
     });
+};
+
+exports.getReset = (req, res, next) => {
+  res.render("auth/reset", {
+    path: "/reset",
+    pageTitle: "Reset",
+    errorMessage: req.flash("error")[0],
+  });
+};
+
+exports.postReset = (req, res, next) => {
+  crypto.randomBytes(32, (err, buffer) => {
+    if (err) {
+      console.log(err);
+      return res.redirect("/reset");
+    }
+    const token = buffer.toString("hex");
+
+    User.findOne({ email: req.body.email })
+      .then((user) => {
+        if (!user) {
+          req.flash("error", "No account exist with this email");
+          return res.redirect("/reset");
+        }
+
+        user.resetToken = token;
+        user.resetTokenExpiration = Date.now() + 3600000;
+        user.save().then(() => {
+          console.log(`reset link http://localhost:3000/reset${token}`);
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
 };
