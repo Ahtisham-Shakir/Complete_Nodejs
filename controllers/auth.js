@@ -95,7 +95,7 @@ exports.postSignup = (req, res, next) => {
 exports.getReset = (req, res, next) => {
   res.render("auth/reset", {
     path: "/reset",
-    pageTitle: "Reset",
+    pageTitle: "Reset Password",
     errorMessage: req.flash("error")[0],
   });
 };
@@ -103,7 +103,7 @@ exports.getReset = (req, res, next) => {
 exports.postReset = (req, res, next) => {
   crypto.randomBytes(32, (err, buffer) => {
     if (err) {
-      console.log(err);
+      console.log(err, "crypto");
       return res.redirect("/reset");
     }
     const token = buffer.toString("hex");
@@ -118,11 +118,59 @@ exports.postReset = (req, res, next) => {
         user.resetToken = token;
         user.resetTokenExpiration = Date.now() + 3600000;
         user.save().then(() => {
-          console.log(`reset link http://localhost:3000/reset${token}`);
+          console.log(`reset link http://localhost:3000/reset/${token}`);
+          res.redirect("/");
         });
       })
       .catch((err) => {
         console.log(err);
       });
   });
+};
+
+exports.getNewPassword = (req, res, next) => {
+  const token = req.params.token;
+
+  User.findOne({
+    resetToken: token,
+    resetTokenExpiration: { $gt: Date.now() },
+  })
+    .then((user) => {
+      res.render("auth/new-password", {
+        path: "/new-password",
+        pageTitle: "New Password",
+        errorMessage: req.flash("error")[0],
+        userId: user._id.toString(),
+        passwordToken: token,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+exports.postNewPassword = (req, res, next) => {
+  const userId = req.body.userId;
+  const newPassword = req.body.password;
+  const passwordToken = req.body.passwordToken;
+
+  User.findOne({
+    resetToken: passwordToken,
+    resetTokenExpiration: { $gt: Date.now() },
+    _id: userId,
+  })
+    .then((user) => {
+      bcrypt.hash(newPassword, 12).then((hashedPassword) => {
+        user.password = hashedPassword;
+        user.resetToken = undefined;
+        user.resetTokenExpiration = undefined;
+        return user.save();
+      });
+    })
+    .then(() => {
+      res.redirect("/login");
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
