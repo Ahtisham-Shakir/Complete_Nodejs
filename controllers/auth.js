@@ -8,6 +8,7 @@ exports.getLogin = (req, res, next) => {
     path: "/login",
     pageTitle: "Login",
     isAuthenticated: req.session.isLoggedin,
+    errorMessage: req.flash("error")[0],
   });
 };
 
@@ -18,6 +19,7 @@ exports.postLogin = (req, res, next) => {
   User.findOne({ email: email })
     .then((user) => {
       if (!user) {
+        req.flash("error", "invalid email or password");
         return res.redirect("/login");
       }
 
@@ -33,6 +35,7 @@ exports.postLogin = (req, res, next) => {
               res.redirect("/");
             });
           }
+          req.flash("error", "invalid email or password");
           res.redirect("/login");
         })
         .catch((err) => {
@@ -55,6 +58,7 @@ exports.getSignup = (req, res, next) => {
     path: "/signup",
     pageTitle: "Signups",
     isAuthenticated: req.session.isLoggedin,
+    errorMessage: req.flash("error")[0],
   });
 };
 
@@ -66,6 +70,7 @@ exports.postSignup = (req, res, next) => {
   User.findOne({ email: email })
     .then((userDoc) => {
       if (userDoc) {
+        req.flash("error", "E-mail already exit please pick a different one");
         return res.redirect("/signup");
       }
       bcrypt

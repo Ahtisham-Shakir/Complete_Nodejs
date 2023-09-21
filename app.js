@@ -7,6 +7,7 @@ const MongoDbStore = require("connect-mongodb-session")(session);
 // const mongoConnect = require("./utils/database").mongoConnect;
 const mongoose = require("mongoose");
 const csrf = require("csurf");
+const flash = require("connect-flash");
 const User = require("./models/user");
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
@@ -41,6 +42,9 @@ app.use(
 );
 
 app.use(csrfProtection);
+
+// Temporarly store error message into the session
+app.use(flash());
 
 app.use((req, res, next) => {
   if (!req.session.user) {
