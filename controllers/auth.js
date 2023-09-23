@@ -12,6 +12,11 @@ exports.getLogin = (req, res, next) => {
     path: "/login",
     pageTitle: "Login",
     errorMessage: req.flash("error")[0],
+    oldInput: {
+      email: "",
+      password: "",
+    },
+    validationErrors: [],
   });
 };
 
@@ -22,8 +27,16 @@ exports.postLogin = (req, res, next) => {
   User.findOne({ email: email })
     .then((user) => {
       if (!user) {
-        req.flash("error", "invalid email or password");
-        return res.redirect("/login");
+        return res.render("auth/login", {
+          path: "/login",
+          pageTitle: "Login",
+          errorMessage: "Invalid Email or Password",
+          oldInput: {
+            email: email,
+            password: password,
+          },
+          validationErrors: [{ path: "email" }, { path: "password" }],
+        });
       }
 
       bcrypt
@@ -38,8 +51,16 @@ exports.postLogin = (req, res, next) => {
               res.redirect("/");
             });
           }
-          req.flash("error", "invalid email or password");
-          res.redirect("/login");
+          res.render("auth/login", {
+            path: "/login",
+            pageTitle: "Login",
+            errorMessage: "Invalid Email or Password",
+            oldInput: {
+              email: email,
+              password: password,
+            },
+            validationErrors: [{ path: "email" }, { path: "password" }],
+          });
         })
         .catch((err) => {
           console.log(err);
@@ -66,6 +87,7 @@ exports.getSignup = (req, res, next) => {
       password: "",
       confirmPassword: "",
     },
+    validationErrors: [],
   });
 };
 
@@ -85,6 +107,7 @@ exports.postSignup = (req, res, next) => {
         password: password,
         confirmPassword: req.body.confirmPassword,
       },
+      validationErrors: errors.array(),
     });
   }
 
