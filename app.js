@@ -1,6 +1,7 @@
 const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
+const multer = require("multer");
 const session = require("express-session");
 const MongoDbStore = require("connect-mongodb-session")(session);
 // const sequelize = require("./utils/database");
@@ -26,10 +27,35 @@ const store = new MongoDbStore({
 
 const csrfProtection = csrf();
 
+const fileStorage = multer.diskStorage({
+  destination: "images",
+  filename: (req, file, cb) => {
+    cb(null, Math.random().toString() + file.originalname);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
 app.set("view engine", "ejs");
 app.set("views", "views");
 
 app.use(bodyParser.urlencoded({ extended: false }));
+
+// Middleware for reading files
+app.use(
+  multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
+);
+
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(
@@ -59,7 +85,7 @@ app.use((req, res, next) => {
       next();
     })
     .catch((err) => {
-      throw new Error(err);
+      next(new Error(err));
     });
 });
 
@@ -81,7 +107,12 @@ app.use(errorController.get404);
 
 // error handling middleware
 app.use((error, req, res, next) => {
-  res.redirect("/500");
+  console.log("err middleware", req.session.isLoggedin);
+  res.status(500).render("500", {
+    pageTitle: "Error",
+    path: "/500",
+    isAuthenticated: req.session.isLoggedin,
+  });
 });
 
 // connecting to database
