@@ -1,3 +1,7 @@
+const fs = require("fs");
+const path = require("path");
+
+const PDFDocument = require("pdfkit");
 const Order = require("../models/order");
 const Product = require("../models/product");
 const User = require("../models/user");
@@ -129,5 +133,72 @@ exports.postOrder = (req, res, next) => {
       const error = new Error(err);
       error.httpStatusCode = 500;
       return next(error);
+    });
+};
+
+exports.getInvoice = (req, res, next) => {
+  const orderId = req.params.orderId;
+
+  Order.findById(orderId)
+    .then((order) => {
+      if (!order) {
+        return next(new Error("No order Found"));
+      }
+      if (order.user.userId.toString() !== req.user._id.toString()) {
+        return next(new Error("Not Authorized"));
+      }
+      const invoiceName = "invoice-" + orderId + ".pdf";
+      const invoicePath = path.join("data", "invoices", invoiceName);
+
+      // Generating pdf Document
+      const pdfDoc = new PDFDocument();
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        'inline; filename="' + invoiceName + '"'
+      );
+      pdfDoc.pipe(fs.createWriteStream(invoicePath));
+      pdfDoc.pipe(res);
+
+      pdfDoc.fontSize(26).text("Invoice");
+      pdfDoc.text("------------------------------");
+      let totalPrice = 0;
+      order.products.forEach((p) => {
+        totalPrice += p.product.price * p.quantity;
+        pdfDoc
+          .fontSize(14)
+          .text(
+            p.product.title + " - " + p.quantity + " x " + "$" + p.product.price
+          );
+      });
+      pdfDoc.text("--------");
+      pdfDoc.fontSize(20).text("Total Price $" + totalPrice);
+
+      pdfDoc.end();
+
+      // Preloading data --> not good for larger files
+      // fs.readFile(invoicePath, (err, data) => {
+      //   if (err) {
+      //     return next(err);
+      //   }
+      //   res.setHeader("Content-Type", "application/pdf");
+      //   res.setHeader(
+      //     "Content-Disposition",
+      //     'inline; filename="' + invoiceName + '"'
+      //   );
+      //   res.send(data);
+      // });
+
+      // Creating streams of data --> good for larger files
+      // const file = fs.createReadStream(invoicePath);
+      // res.setHeader("Content-Type", "application/pdf");
+      // res.setHeader(
+      //   "Content-Disposition",
+      //   'inline; filename="' + invoiceName + '"'
+      // );
+      // file.pipe(res);
+    })
+    .catch((err) => {
+      next(err);
     });
 };
