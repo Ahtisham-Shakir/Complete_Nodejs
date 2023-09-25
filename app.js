@@ -107,14 +107,14 @@ app.get("/500", errorController.get500);
 app.use(errorController.get404);
 
 // error handling middleware
-app.use((error, req, res, next) => {
-  console.log("err middleware", req.session.isLoggedin);
-  res.status(500).render("500", {
-    pageTitle: "Error",
-    path: "/500",
-    isAuthenticated: req.session.isLoggedin,
-  });
-});
+// app.use((error, req, res, next) => {
+//   console.log("err middleware", req.session.isLoggedin);
+//   res.status(500).render("500", {
+//     pageTitle: "Error",
+//     path: "/500",
+//     isAuthenticated: req.session.isLoggedin,
+//   });
+// });
 
 // connecting to database
 // sequelize
